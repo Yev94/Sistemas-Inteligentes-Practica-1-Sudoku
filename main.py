@@ -10,6 +10,9 @@ from tablero import *
 from pygame.locals import *
 import sys
 
+from backtracking import resolverBK
+
+
 GREY=(220,220,220)
 NEGRO=(10,10,10)
 GRIS_ACTIVO=(245,245,245)
@@ -111,13 +114,28 @@ def main():
                 if pulsaBoton(pos, botLoad):                                      
                     tablero=Tablero(file)
                     copTab=copy.deepcopy(tablero)                                    
+                # if pulsaBoton(pos, botBK):                    
+                #     if tablero is None:
+                #         print('Hay que cargar un sudoku')
+                #     else:
+                #         print("BK")
+                #         #aquí llamar a backtracking
+                #         #actualizar tablero si hay solución,en cado contrario mostrar mensaje de sin solución
+
+                # Reemplazamos funcion botón BK           
                 if pulsaBoton(pos, botBK):                    
                     if tablero is None:
                         print('Hay que cargar un sudoku')
                     else:
                         print("BK")
-                        #aquí llamar a backtracking
-                        #actualizar tablero si hay solución,en cado contrario mostrar mensaje de sin solución                                                         
+                        exito = resolverBK(tablero)  
+
+                        if exito:
+                            print("✅ Sudoku resuelto correctamente.")
+                        else:
+                            print("❌ No se encontró solución.")
+
+
                 elif pulsaBoton(pos, botFC):                    
                     if tablero is None:
                         print('Hay que cargar un sudoku')
