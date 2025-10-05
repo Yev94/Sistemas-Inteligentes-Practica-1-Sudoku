@@ -1,6 +1,7 @@
 import pygame
 import time
 
+
 def comprobar(tablero, fila, col, valor):
     # 1️⃣ Comprobar la FILA
         # Comprobamos los valores de todas las celdas de la fila
