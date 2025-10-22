@@ -2,6 +2,9 @@
 
 from copy import deepcopy
 
+contador_rec = 0
+contador_asig = 0
+
 def comprobar(tablero, fila, col, valor):
     """Comprueba si se puede colocar 'valor' en la celda (fila, col)."""
     for c in range(9):
@@ -39,7 +42,6 @@ def calcular_dominios(tablero):
 
 
 def forward_checking(tablero, dominios=None):
-    """Resuelve el Sudoku mediante Forward Checking."""
     global contador_rec, contador_asig
     contador_rec += 1
 

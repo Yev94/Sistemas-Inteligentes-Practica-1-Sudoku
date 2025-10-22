@@ -1,24 +1,29 @@
-# variable.py
 class Variable:
-    
-    def __init__(self, valor='0', dominio=None):
-        #  valor: número actual como string ('0' si está vacía)
-        self.valor = valor 
-        # dominio: lista de valores posibles (por defecto 1..9)
-        self.dom = dominio or [str(i) for i in range(1, 10)]
+    def __init__(self, value='0', domain=None):
+        self.value = value
+        # Solo las vacías tienen dominio inicial 1..9
+        self.fixed = value != '0'
+        self.domain = domain or [str(i) for i in range(1, 10)]
+        # if value == '0':
+        # else:
+        #     self.domain = None  # En vez de lista vacía
 
-    # True si la variable ya tiene un valor distinto de '0'
     def is_assigned(self):
-        return self.valor != '0'
+        """Devuelve True si la variable ya tiene valor asignado."""
+        return self.value != '0'
 
-    # Asigna un valor y reduce el dominio a ese valor solo durante la siguiente iteración, si no era el que necesitábamos el dom vuelve al anterior original
     def assign(self, v):
-        self.valor = v
-        self.dom = [v]
+        """Asigna un valor y reduce el dominio a un único valor."""
+        self.value = v
 
-    # Deshace la asignación (para hacer backtracking)
     def unassign(self):
-        self.valor = '0'
+        """Desasigna el valor y restaura el dominio completo."""
+        self.value = '0'
+        self.domain = [str(i) for i in range(1, 10)]
+
+    def getValue(self):
+        """Devuelve el valor actual de la variable."""
+        return self.value
 
     def __repr__(self):
-        return f"Variable(valor={self.valor}, dom={self.dom})"
+        return f"Variable(value={self.value}, domain={self.domain})"

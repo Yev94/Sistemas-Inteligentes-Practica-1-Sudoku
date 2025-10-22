@@ -51,7 +51,6 @@ def leer(archivo):
         fich.close()
     
     fich.close()
-   
     return (tablero)
     
     

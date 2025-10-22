@@ -2,17 +2,17 @@
 # CURSO 25-25
 # PRACTICA 1 DE SISTEMAS INTELIGENTES: RESOLUCION DE SUDOKUS
 #########################################################################   
-#TODO: Contador de Recursión
-#TODO: Contandor de Asignación (Tiene que se igual o mayor que recursión)
+
 import pygame
 import copy
 from tablero import *
 from pygame.locals import *
 import sys
 
+
 # --------------------- Mis Imports --------------------------------
-from backtracking import resolverBK
-from forwardchecking import forward_checking, contador_rec, contador_asig
+import backtracking
+import forwardchecking
 # --------------------- !Mis Imports --------------------------------
 
 GREY=(220,220,220)
@@ -125,17 +125,18 @@ def main():
                 #         #actualizar tablero si hay solución,en cado contrario mostrar mensaje de sin solución
 
                 # Reemplazamos funcion botón BK           
-                if pulsaBoton(pos, botBK):                    
+                if pulsaBoton(pos, botBK):
                     if tablero is None:
-                        print('Hay que cargar un sudoku')
+                        print("Hay que cargar un sudoku")
                     else:
-                        print("BK")
-                        exito = resolverBK(tablero)  
+                        # 🔹 reiniciar los contadores
+                        backtracking.contador_rec = 0
+                        backtracking.contador_asig = 0
 
-                        if exito:
-                            print("✅ Sudoku resuelto correctamente.")
-                        else:
-                            print("❌ No se encontró solución.")
+                        print("Ejecutando Backtracking...")
+                        exito = backtracking.resolverBK(tablero)
+
+                        print(f"✅ BK -> Recursiones: {backtracking.contador_rec} | Asignaciones: {backtracking.contador_asig}")
 
 
                 # elif pulsaBoton(pos, botFC):                    
@@ -149,18 +150,21 @@ def main():
                 #  Reemplazamos función botón FC
                 elif pulsaBoton(pos, botFC):
                     if tablero is None:
-                        print('Hay que cargar un sudoku')
+                        print("Hay que cargar un sudoku")
                     else:
-                        print("Ejecutando Forward Checking...")
-                        contador_rec = 0
-                        contador_asig = 0
+                        forwardchecking.contador_rec = 0
+                        forwardchecking.contador_asig = 0
 
-                        exito = forward_checking(tablero)
+                        print("Ejecutando Forward Checking...")
+                        exito = forwardchecking.forward_checking(tablero)
 
                         if exito:
-                            print(f"✅ Sudoku resuelto con FC. Recursiones: {contador_rec}, Asignaciones: {contador_asig}")
+                            print(f"✅ FC -> Recursiones: {forwardchecking.contador_rec} | Asignaciones: {forwardchecking.contador_asig}")
                         else:
-                            print("❌ No se encontró solución con FC.")                  
+                            print("❌ No se encontró solución con FC.")
+
+  
+
                 elif pulsaBoton(pos, botAC3):
                     if tablero is None:
                         print('Hay que cargar un sudoku')
@@ -173,7 +177,7 @@ def main():
         #pintar cuadrícula del sudoku  
         pintarTablero(screen, fuenteSud, tablero, copTab)                   
         #pintar botones        
-        pintarBoton(screen, fuenteBot, botLoad, "Load")
+        pintarBoton(screen, fuenteBot, botLoad, "Re/Load")
         pintarBoton(screen, fuenteBot, botBK, "BK")
         pintarBoton(screen, fuenteBot, botFC, "FC")
         pintarBoton(screen, fuenteBot, botAC3, "AC3")        
