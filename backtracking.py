@@ -1,6 +1,4 @@
 from variable import Variable
-import sys
-sys.setrecursionlimit(10600)
 
 contador_rec = 0
 contador_asig = 0
@@ -67,24 +65,15 @@ def backtracking(k, variables):
     variable_actual = variables[k]
 
     if variable_actual.fixed: return backtracking(k + 1, variables) # Es una celda fija → saltar
-
-    while True:
-        if not seleccion(variable_actual): 
-            if k == 0: return None
-            else:
-                # 🔹 Buscar la celda anterior NO fija
-                j = k - 1
-                while j >= 0 and variables[j].fixed:
-                    j -= 1
-
-                # Si llegamos al principio y todas eran fijas, no hay solución
-                if j < 0:
-                    return None
-                variable_actual.unassign()
-                return backtracking(j, variables)
-        if comprobar(k, variables): return backtracking(k+1, variables)
-        
-
+    for valor_actual in variable_actual.domain:
+        contador_asig += 1
+        variable_actual.assign(valor_actual)
+        if comprobar(k, variables):
+            resultado = backtracking(k + 1, variables)
+            if resultado:   return resultado 
+    
+    variable_actual.unassign()
+    return False
 
 def resolverBK(tablero):
     variables = crear_variables(tablero)
