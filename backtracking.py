@@ -8,7 +8,7 @@ def comprobar(k, variables):
     Comprueba si el valor de la celda k cumple las
     restricciones de fila, columna y bloque del Sudoku.
     """
-    valorK = variables[k].getValue()
+    valorK = variables[k].getvalor()
     if valorK == '0':
         return True  # si está vacía, no hay nada que comprobar
 
@@ -19,13 +19,13 @@ def comprobar(k, variables):
     # --- Comprobar fila ---
     for i in range(9):
         idx = fila_base + i
-        if idx != k and variables[idx].getValue() == valorK:
+        if idx != k and variables[idx].getvalor() == valorK:
             return False
 
     # --- Comprobar columna ---
     for i in range(9):
         idx = 9 * i + columna
-        if idx != k and variables[idx].getValue() == valorK:
+        if idx != k and variables[idx].getvalor() == valorK:
             return False
 
     # --- Comprobar bloque 3x3 ---
@@ -35,7 +35,7 @@ def comprobar(k, variables):
         base = 9 * f
         for c in range(iColumnaCuadrante, iColumnaCuadrante + 3):
             idx = base + c
-            if idx != k and variables[idx].getValue() == valorK:
+            if idx != k and variables[idx].getvalor() == valorK:
                 return False
 
     return True
@@ -48,14 +48,6 @@ def crear_variables(tablero):
             variables.append(Variable(valor))
     return variables
 
-def seleccion(variable):
-    global contador_asig
-    if len(variable.domain) < 1: return False
-    valor = variable.domain.pop(0)
-    variable.assign(valor)
-    contador_asig += 1  # ✅ cada vez que asignamos un valor
-    return True
-
 
 def backtracking(k, variables):
     global contador_rec, contador_asig
@@ -64,15 +56,15 @@ def backtracking(k, variables):
     if k >= len(variables): return variables
     variable_actual = variables[k]
 
-    if variable_actual.fixed: return backtracking(k + 1, variables) # Es una celda fija → saltar
-    for valor_actual in variable_actual.domain:
+    if variable_actual.fijo: return backtracking(k + 1, variables) # Es una celda fija → saltar
+    for valor_actual in variable_actual.dominio:
         contador_asig += 1
-        variable_actual.assign(valor_actual)
+        variable_actual.asignar(valor_actual)
         if comprobar(k, variables):
             resultado = backtracking(k + 1, variables)
             if resultado:   return resultado 
     
-    variable_actual.unassign()
+    variable_actual.desasignar()
     return False
 
 def resolverBK(tablero):
@@ -82,4 +74,4 @@ def resolverBK(tablero):
     for i in range(81):
         fila = i // 9
         columna = i % 9
-        tablero.setCelda(fila, columna, bkResuelto[i].getValue())  # sincronizar tablero
+        tablero.setCelda(fila, columna, bkResuelto[i].getvalor())  # sincronizar tablero
