@@ -13,6 +13,7 @@ import sys
 # --------------------- Mis Imports --------------------------------
 import backtracking
 import forwardchecking
+from variable import Variable
 # --------------------- !Mis Imports --------------------------------
 
 GREY=(220,220,220)
@@ -26,6 +27,17 @@ MARGEN_DERECHO=125 #ancho del margen derecho entre la cuadrícula y la ventana
 TAM=60  #tamaño de la celda
 N=9 # número de filas del sudoku
 VACIA='0'
+
+#########################################################################
+# Crea la lista de variables a partir del tablero
+#########################################################################
+def crear_variables(tablero):
+    variables = []
+    for fila in range(9):
+        for columna in range(9):
+            valor = tablero.getCelda(fila, columna)
+            variables.append(Variable(valor))
+    return variables
 
 #########################################################################
 # Detecta si se pulsa un botón
@@ -105,7 +117,6 @@ def main():
     tablero=None
     copTab=None
     
-    
     while not game_over:
         for event in pygame.event.get():
             if event.type==pygame.QUIT:               
@@ -115,14 +126,9 @@ def main():
                 pos=pygame.mouse.get_pos()
                 if pulsaBoton(pos, botLoad):                                      
                     tablero=Tablero(file)
-                    copTab=copy.deepcopy(tablero)                                    
-                # if pulsaBoton(pos, botBK):                    
-                #     if tablero is None:
-                #         print('Hay que cargar un sudoku')
-                #     else:
-                #         print("BK")
-                #         #aquí llamar a backtracking
-                #         #actualizar tablero si hay solución,en cado contrario mostrar mensaje de sin solución
+                    copTab=copy.deepcopy(tablero)
+                    variables = crear_variables(tablero)                                    
+                
 
                 # Reemplazamos funcion botón BK           
                 if pulsaBoton(pos, botBK):
@@ -134,7 +140,7 @@ def main():
                         backtracking.contador_asig = 0
 
                         print("Ejecutando Backtracking...")
-                        exito = backtracking.resolverBK(tablero)
+                        exito = backtracking.resolverBK(tablero, variables)
 
                         print(f"✅ BK -> Recursiones: {backtracking.contador_rec} | Asignaciones: {backtracking.contador_asig}")
 
@@ -163,7 +169,6 @@ def main():
                         else:
                             print("❌ No se encontró solución con FC.")
 
-  
 
                 elif pulsaBoton(pos, botAC3):
                     if tablero is None:

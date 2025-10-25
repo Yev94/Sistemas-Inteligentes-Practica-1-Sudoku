@@ -21,6 +21,10 @@ class Variable:
     def desasignar(self):
         """Desasigna el valor y restaura el dominio completo."""
         self.valor = '0'
+    
+    def resetearDominio(self):
+        """Desasigna el valor y restaura el dominio completo."""
+        self.dominio = [str(i) for i in range(1, 10)]
 
     def getvalor(self):
         """Devuelve el valor actual de la variable."""

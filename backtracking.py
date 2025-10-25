@@ -1,4 +1,3 @@
-from variable import Variable
 
 contador_rec = 0
 contador_asig = 0
@@ -40,13 +39,7 @@ def comprobar(k, variables):
 
     return True
 
-def crear_variables(tablero):
-    variables = []
-    for fila in range(9):
-        for columna in range(9):
-            valor = tablero.getCelda(fila, columna)
-            variables.append(Variable(valor))
-    return variables
+
 
 
 def backtracking(k, variables):
@@ -67,8 +60,8 @@ def backtracking(k, variables):
     variable_actual.desasignar()
     return False
 
-def resolverBK(tablero):
-    variables = crear_variables(tablero)
+def resolverBK(tablero, variables):
+    
     bkResuelto = backtracking(0, variables)
 
     for i in range(81):
