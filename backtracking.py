@@ -7,7 +7,7 @@ def comprobar(k, variables):
     Comprueba si el valor de la celda k cumple las
     restricciones de fila, columna y bloque del Sudoku.
     """
-    valorK = variables[k].getvalor()
+    valorK = variables[k].get_valor()
     if valorK == '0':
         return True  # si está vacía, no hay nada que comprobar
 
@@ -18,13 +18,13 @@ def comprobar(k, variables):
     # --- Comprobar fila ---
     for i in range(9):
         idx = fila_base + i
-        if idx != k and variables[idx].getvalor() == valorK:
+        if idx != k and variables[idx].get_valor() == valorK:
             return False
 
     # --- Comprobar columna ---
     for i in range(9):
         idx = 9 * i + columna
-        if idx != k and variables[idx].getvalor() == valorK:
+        if idx != k and variables[idx].get_valor() == valorK:
             return False
 
     # --- Comprobar bloque 3x3 ---
@@ -34,12 +34,10 @@ def comprobar(k, variables):
         base = 9 * f
         for c in range(iColumnaCuadrante, iColumnaCuadrante + 3):
             idx = base + c
-            if idx != k and variables[idx].getvalor() == valorK:
+            if idx != k and variables[idx].get_valor() == valorK:
                 return False
 
     return True
-
-
 
 
 def backtracking(k, variables):
@@ -64,7 +62,12 @@ def resolverBK(tablero, variables):
     
     bkResuelto = backtracking(0, variables)
 
+    if not bkResuelto:
+        print("❌ No hay solución posible con Backtracking")
+        return False
+    
     for i in range(81):
         fila = i // 9
         columna = i % 9
-        tablero.setCelda(fila, columna, bkResuelto[i].getvalor())  # sincronizar tablero
+        tablero.setCelda(fila, columna, bkResuelto[i].get_valor())  # sincronizar tablero
+    return True

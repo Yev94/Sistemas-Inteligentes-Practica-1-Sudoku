@@ -2,6 +2,7 @@ class Variable:
     def __init__(self, valor='0', dominio=None):
         self.valor = valor
         self.fijo = valor != '0'
+        self.podado = []
 
         if self.fijo:
             # 🔹 Si la celda tiene un valor fijo, su dominio es solo ese valor
@@ -15,20 +16,27 @@ class Variable:
         return self.valor != '0'
 
     def asignar(self, v):
-        """Asigna un valor """
-        self.valor = v
+        if not self.fijo:
+            self.valor = v
 
     def desasignar(self):
-        """Desasigna el valor y restaura el dominio completo."""
-        self.valor = '0'
+        if not self.fijo:
+            self.valor = '0'
     
     def resetearDominio(self):
         """Desasigna el valor y restaura el dominio completo."""
         self.dominio = [str(i) for i in range(1, 10)]
+    
+    def setPodado(self, valor):
+        self.podado.append(valor)
 
-    def getvalor(self):
+    def setDominio(self, valor):
+        self.dominio.append(valor)
+
+    def get_valor(self):
         """Devuelve el valor actual de la variable."""
         return self.valor
+    
 
     def __repr__(self):
         return f"Variable(valor={self.valor}, dominio={self.dominio})"

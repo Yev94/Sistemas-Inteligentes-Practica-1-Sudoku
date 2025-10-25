@@ -144,15 +144,6 @@ def main():
 
                         print(f"✅ BK -> Recursiones: {backtracking.contador_rec} | Asignaciones: {backtracking.contador_asig}")
 
-
-                # elif pulsaBoton(pos, botFC):                    
-                #     if tablero is None:
-                #         print('Hay que cargar un sudoku')
-                #     else:
-                #         print("FC")
-                #         #aquí llamar a forward checking
-                #         #actualizar tablero si hay solución,en cado contrario mostrar mensaje de sin solución 
-
                 #  Reemplazamos función botón FC
                 elif pulsaBoton(pos, botFC):
                     if tablero is None:
@@ -162,7 +153,7 @@ def main():
                         forwardchecking.contador_asig = 0
 
                         print("Ejecutando Forward Checking...")
-                        exito = forwardchecking.forward_checking(tablero)
+                        exito = forwardchecking.resolverFC(tablero, variables)
 
                         if exito:
                             print(f"✅ FC -> Recursiones: {forwardchecking.contador_rec} | Asignaciones: {forwardchecking.contador_asig}")

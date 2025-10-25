@@ -1,96 +1,103 @@
-# forwardchecking.py
 
-from copy import deepcopy
+def es_consistente(k, variables, valor):
+    """
+    Comprueba si 'valor' puede colocarse en la posición k sin 
+    violar las restricciones de fila, columna o bloque 3x3.
+    """
+    if valor == '0':
+        return True  # nada que comprobar
 
-contador_rec = 0
-contador_asig = 0
+    fila = k // 9
+    columna = k % 9
+    fila_base = fila * 9
 
-def comprobar(tablero, fila, col, valor):
-    """Comprueba si se puede colocar 'valor' en la celda (fila, col)."""
-    for c in range(9):
-        if tablero.getCelda(fila, c) == valor:
+    # --- Fila ---
+    for i in range(9):
+        idx = fila_base + i
+        if idx != k and variables[idx].get_valor() == valor:
             return False
-    for f in range(9):
-        if tablero.getCelda(f, col) == valor:
+
+    # --- Columna ---
+    for i in range(9):
+        idx = 9 * i + columna
+        if idx != k and variables[idx].get_valor() == valor:
             return False
-    start_row = (fila // 3) * 3
-    start_col = (col // 3) * 3
-    for f in range(start_row, start_row + 3):
-        for c in range(start_col, start_col + 3):
-            if tablero.getCelda(f, c) == valor:
+
+    # --- Bloque 3x3 ---
+    iFilaCuadrante = (fila // 3) * 3
+    iColumnaCuadrante = (columna // 3) * 3
+    for f in range(iFilaCuadrante, iFilaCuadrante + 3):
+        base = 9 * f
+        for c in range(iColumnaCuadrante, iColumnaCuadrante + 3):
+            idx = base + c
+            if idx != k and variables[idx].get_valor() == valor:
                 return False
+
     return True
 
 
-# Contadores (para estadísticas)
-contador_rec = 0
-contador_asig = 0
+def forward(i, variables):
+    dominio_vacio = False
+    for j in range(i + 1, len(variables)):
+        for b in variables[j].dominio[:]:
+            if variables[j].fijo: continue
+            variables[j].asignar(b)
+            if not es_consistente(j, variables, b):
+                variables[j].dominio.remove(b)
+                variables[j].setPodado((i, b))
+            variables[j].desasignar()
+        if variables[j].dominio == []: 
+            dominio_vacio = True
+            break
+    if dominio_vacio: return False
+    return True
 
-
-def calcular_dominios(tablero):
-    """Genera un diccionario con los dominios posibles para cada celda vacía."""
-    dominios = {}
-    for fila in range(9):
-        for col in range(9):
-            if tablero.getCelda(fila, col) == '0':
-                posibles = []
-                for valor in map(str, range(1, 10)):
-                    if comprobar(tablero, fila, col, valor):
-                        posibles.append(valor)
-                dominios[(fila, col)] = posibles
-    return dominios
-
-
-def forward_checking(tablero, dominios=None):
-    global contador_rec, contador_asig
-    contador_rec += 1
-
-    # Generar dominios iniciales si no se pasan
-    if dominios is None:
-        dominios = calcular_dominios(tablero)
-
-    # Si no quedan celdas vacías → Sudoku resuelto
-    if not dominios:
-        return True
-
-    # Seleccionar la variable con menor dominio (heurística MRV)
-    celda = min(dominios, key=lambda x: len(dominios[x]))
-    fila, col = celda
-
-    for valor in dominios[celda]:
-        contador_asig += 1
-        if comprobar(tablero, fila, col, valor):
-            tablero.setCelda(fila, col, valor)
-
-            # Copiar dominios y hacer "forward checking"
-            nuevos_dominios = deepcopy(dominios)
-            del nuevos_dominios[celda]  # ya asignada
-
-            # Eliminar 'valor' de los dominios de sus vecinos
-            start_row = (fila // 3) * 3
-            start_col = (col // 3) * 3
-            vecinos = set()
-            for i in range(9):
-                vecinos.add((fila, i))  # misma fila
-                vecinos.add((i, col))  # misma columna
-            for f in range(start_row, start_row + 3):
-                for c in range(start_col, start_col + 3):
-                    vecinos.add((f, c))
-
-            # Quitar 'valor' de dominios de vecinos
-            for (f, c) in vecinos:
-                if (f, c) in nuevos_dominios and valor in nuevos_dominios[(f, c)]:
-                    nuevos_dominios[(f, c)].remove(valor)
-                    # Si algún vecino se queda sin valores → inconsistente
-                    if not nuevos_dominios[(f, c)]:
-                        tablero.setCelda(fila, col, '0')
-                        break
+def restaurar(i, variables):
+    
+    for j in range(i + 1, len(variables)):
+        nuevos_podados = [] # Lo hacemos de esta manera porque con una copia
+        # Recorremos cada valor podado de Xj
+        for (responsable, valor) in variables[j].podado:
+            if responsable == i:
+                # Xi es responsable del filtrado → restaurar valor
+                variables[j].dominio.append(valor)
             else:
-                # Si todo está bien, seguir recursivamente
-                if forward_checking(tablero, nuevos_dominios):
-                    return True
+                # Otro responsable (no restauramos todavía)
+                nuevos_podados.append((responsable, valor))
 
-            # Si falló, retroceder
-            tablero.setCelda(fila, col, '0')
+        # Actualizamos la lista de podados (quitamos los restaurados)
+        variables[j].podado = nuevos_podados
 
-    return False  # No hay valor válido → backtrack
+
+def FC(i, variables):
+    global contador_rec, contador_asig
+    contador_rec += 1  # 🔹 contamos una llamada recursiva
+     # ✅ Caso base: Sudoku completo
+    if i >= len(variables): return variables
+    variable = variables[i]
+    if variable.fijo: return FC(i + 1, variables)
+
+    for valor in variable.dominio:
+        contador_asig += 1  # 🔹 contamos una asignación de valor
+        variable.asignar(valor) # Xi ← a
+        if forward(i, variables): 
+            resultado = FC(i+1, variables)
+            if resultado: return resultado
+        restaurar(i, variables)
+        variable.desasignar()
+    return False
+
+
+def resolverFC(tablero, variables):
+    
+    fcResuelto = FC(0, variables)
+
+    if not fcResuelto:
+        print("❌ No hay solución posible con Forward Checking")
+        return False
+    
+    for i in range(81):
+        fila = i // 9
+        columna = i % 9
+        tablero.setCelda(fila, columna, fcResuelto[i].get_valor())  # sincronizar tablero
+    return True
