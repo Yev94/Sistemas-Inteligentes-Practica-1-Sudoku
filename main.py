@@ -9,7 +9,6 @@ from tablero import *
 from pygame.locals import *
 import sys
 
-
 # --------------------- Mis Imports --------------------------------
 import backtracking
 import forwardchecking
@@ -17,7 +16,7 @@ import ac3
 from variable import Variable
 # --------------------- !Mis Imports --------------------------------
 
-ARCHIVO = 'm3.txt'
+ARCHIVO = 'm5.txt'
 
 GREY=(220,220,220)
 NEGRO=(10,10,10)
@@ -41,6 +40,50 @@ def crear_variables(tablero):
             valor = tablero.getCelda(fila, columna)
             variables.append(Variable(valor))
     return variables
+
+#########################################################################
+# Precomputamos indices de vecinos de las restricciones para usarlas en los algoritmos
+#########################################################################
+def obtener_vecinos(indice):
+    vecinos = set()
+    fila = indice // 9
+    col = indice % 9
+
+    # Mismos fila
+    for c in range(9):
+        idx = fila * 9 + c
+        if idx != indice:
+            vecinos.add(idx)
+
+    # Misma columna
+    for f in range(9):
+        idx = f * 9 + col
+        if idx != indice:
+            vecinos.add(idx)
+
+    # Mismo bloque
+    fila_base = (fila // 3) * 3
+    col_base = (col // 3) * 3
+    for f in range(fila_base, fila_base + 3):
+        for c in range(col_base, col_base + 3):
+            idx = f * 9 + c
+            if idx != indice:
+                vecinos.add(idx)
+
+    return list(vecinos)
+
+#########################################################################
+# Imprimimos los dominios de AC3
+#########################################################################
+# 🔹 Función auxiliar: imprime los dominios antes y después uno al lado del otro
+def imprimir_dominios_lado_a_lado(dominios_antes, dominios_despues):
+    print("\n{:<40}{}".format("DOMINIOS ANTES DEL AC3", "DOMINIOS DESPUÉS DEL AC3"))
+    for i in range(len(dominios_antes)):
+        fila, col = i // 9, i % 9
+        antes_str = ", ".join(dominios_antes[i])
+        despues_str = ", ".join(dominios_despues[i])
+        print(f"{fila}{col:1}  Dominio: {antes_str:<30}    {fila}{col:1}  Dominio: {despues_str}")
+
 
 #########################################################################
 # Detecta si se pulsa un botón
@@ -130,7 +173,9 @@ def main():
                 if pulsaBoton(pos, botLoad):                                      
                     tablero=Tablero(file)
                     copTab=copy.deepcopy(tablero)
-                    variables = crear_variables(tablero)                                    
+                    variables = crear_variables(tablero)
+                    vecinos = [obtener_vecinos(i) for i in range(81)]
+                    print("Vecinos precomputados correctamente.")
                 
 
                 # Reemplazamos funcion botón BK           
@@ -138,14 +183,16 @@ def main():
                     if tablero is None:
                         print("Hay que cargar un sudoku")
                     else:
-                        # 🔹 reiniciar los contadores
                         backtracking.contador_rec = 0
                         backtracking.contador_asig = 0
 
                         print("Ejecutando Backtracking...")
-                        exito = backtracking.resolverBK(tablero, variables)
+                        exito, tiempo = backtracking.resolverBK(tablero, variables, vecinos)
 
-                        print(f"✅ BK -> Recursiones: {backtracking.contador_rec} | Asignaciones: {backtracking.contador_asig}")
+                        if exito:
+                            print(f"✅ BK -> Recursiones: {backtracking.contador_rec} | Asignaciones: {backtracking.contador_asig} | Tiempo: {tiempo:.9f}s")
+                        else:
+                            print(f"❌ No se encontró solución con BK. | Tiempo: {tiempo:.9f}s")
 
                 #  Reemplazamos función botón FC
                 elif pulsaBoton(pos, botFC):
@@ -156,38 +203,39 @@ def main():
                         forwardchecking.contador_asig = 0
 
                         print("Ejecutando Forward Checking...")
-                        exito = forwardchecking.resolverFC(tablero, variables)
+                        exito, tiempo = forwardchecking.resolverFC(tablero, variables, vecinos)
 
                         if exito:
-                            print(f"✅ FC -> Recursiones: {forwardchecking.contador_rec} | Asignaciones: {forwardchecking.contador_asig}")
+                            print(f"✅ FC -> Recursiones: {forwardchecking.contador_rec} | Asignaciones: {forwardchecking.contador_asig} | Tiempo: {tiempo:.9f}s")
                         else:
-                            print("❌ No se encontró solución con FC.")
+                            print(f"❌ No se encontró solución con FC. | Tiempo: {tiempo:.9f}s")
 
 
                 elif pulsaBoton(pos, botAC3):
                     if tablero is None:
                         print('Hay que cargar un sudoku')
-                    else:                        
+                    else:
                         print("🔹 Ejecutando AC-3...")
 
                         # Ejecutar el algoritmo de consistencia
-                        exito = ac3.ac3(variables)
+                        exito, tiempo, dominios_antes, dominios_despues = ac3.resolverAC3(variables, vecinos)
 
-                        if not exito:
-                            print("❌ El Sudoku no es consistente (AC-3 detectó un conflicto).")
+                        if exito:
+                            imprimir_dominios_lado_a_lado(dominios_antes, dominios_despues)
+                            print(f"✅ AC-3 finalizado correctamente | Tiempo: {tiempo:.9f}s")
                         else:
-                            print("✅ AC-3 finalizado correctamente.")
+                            print(f"❌ El Sudoku no es consistente (AC-3 detectó un conflicto) | Tiempo: {tiempo:.9f}s")
 
-                            # 🔹 Actualizar el tablero con los valores que quedaron determinados
-                            for i, var in enumerate(variables):
-                                if len(var.dominio) == 1:
-                                    valor = var.dominio[0]
-                                    fila = i // 9
-                                    col = i % 9
-                                    tablero.setCelda(fila, col, valor)
+                        # 🔹 Actualizar el tablero con los valores determinados por AC-3
+                        for i, var in enumerate(variables):
+                            if len(var.dominio) == 1:
+                                valor = var.dominio[0]
+                                fila = i // 9
+                                col = i % 9
+                                tablero.setCelda(fila, col, valor)
 
-                            print("🔹 Tablero actualizado con los valores determinados por AC-3.")
-               
+                        print("🔹 Tablero actualizado con los valores determinados por AC-3.")
+
         #limpiar pantalla
         screen.fill(GREY)
         #pintar cuadrícula del sudoku  

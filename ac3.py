@@ -1,76 +1,58 @@
+import time
 
-def obtener_vecinos(indice, variables):
-    vecinos = set() # Para no repetir vecinos 
-
-    fila = indice // 9
-    columna = indice % 9
-
-    # --- Mismos fila ---
-    for i in range(9):
-        idx = fila * 9 + i
-        if idx != indice:
-            vecinos.add(variables[idx])
-
-    # --- Misma columna ---
-    for i in range(9):
-        idx = 9 * i + columna
-        if idx != indice:
-            vecinos.add(variables[idx])
-
-    # --- Mismo bloque 3x3 ---
-    iFilaCuadrante = (fila // 3) * 3
-    iColumnaCuadrante = (columna // 3) * 3
-    for f in range(iFilaCuadrante, iFilaCuadrante + 3):
-        base = 9 * f
-        for c in range(iColumnaCuadrante, iColumnaCuadrante + 3):
-            idx = base + c
-            if idx != indice:
-                vecinos.add(variables[idx])
-
-    return list(vecinos)
-
-def crear_cola_par_variables(variables):
+def crear_cola_par_variables(variables, vecinos):
     Q = []
     for i in range(len(variables)):
-        Vi = variables[i]
-        if Vi.fijo: continue  # ❌ No meter arcos que parten de variables fijas
-        for Vj in obtener_vecinos(i, variables):
-            if Vi != Vj: Q.append((Vi, Vj))  # 👈 guardamos objetos Variable
+        for j in vecinos[i]:
+            Q.append((i, j))
     return Q
-
-def obtener_vecinos_por_variable(variable, variables):
-    indice = variables.index(variable)
-    return obtener_vecinos(indice, variables)
 
 def no_consistente(valor_k, dominio_m):
     for valor_m in dominio_m:
-        if valor_k != valor_m: return False  # tiene al menos un soporte → consistente
+        if valor_k != valor_m: 
+            return False  # tiene al menos un soporte → consistente
     return True  # no tiene ninguno → inconsistente
 
 
-def ac3(variables):
 
-    Q = crear_cola_par_variables(variables)
+def ac3(variables, vecinos):
+
+    # Línea 1: Q ← { (Vi, Vj) | ep ∈ E, i ≠ j }
+    Q = crear_cola_par_variables(variables, vecinos)
+    
+    # 🟡 Guardar dominios iniciales antes de aplicar AC3
+    dominios_antes = [v.dominio[:] for v in variables]
 
     while len(Q) > 0:
 
         # <Vk, Vm> ← seleccionar_y_borrar(Q)
-        (Vk, Vm) = Q.pop(0)
+        (k, m) = Q.pop(0)
         cambio = False
 
         # for all vk ∈ Dk do
-        for valor_k in Vk.dominio[:]:
-            if no_consistente(valor_k, Vm.dominio):
-                Vk.dominio.remove(valor_k)
-                Vk.setPodado((Vm, valor_k))
+        for valor_k in variables[k].dominio[:]:
+            if no_consistente(valor_k, variables[m].dominio):
+                variables[k].dominio.remove(valor_k)
+                variables[k].setPodado((m, valor_k))
                 cambio = True
 
-        if len(Vk.dominio) == 0:
+        if len(variables[k].dominio) == 0:
             return False
 
         if cambio:
-            for Vi in obtener_vecinos_por_variable(Vk, variables):
-                if Vi != Vm and Vi != Vk:
-                    Q.append((Vi, Vk))
+            for i in vecinos[k]:
+                if i != m and i != k:
+                    Q.append((i, k))
 
-    return True
+    # 🟢 Guardar dominios después del AC3
+    dominios_despues = [v.dominio[:] for v in variables]
+
+    # 👉 Devolver también los dominios (para imprimirlos luego si quieres)
+    return True, dominios_antes, dominios_despues
+
+def resolverAC3(variables, vecinos):
+    inicio = time.time()
+    exito, dominios_antes, dominios_despues = ac3(variables, vecinos)
+    fin = time.time()
+    tiempo = fin - inicio
+    return exito, round(tiempo, 9), dominios_antes, dominios_despues

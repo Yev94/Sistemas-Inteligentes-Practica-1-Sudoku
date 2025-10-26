@@ -1,25 +1,17 @@
-def es_consistente(i, a, j, b):
-    # Solo importa si están en la misma fila, columna o cuadrante
-    fila_i = i // 9
-    col_i = i % 9
-    fila_j = j // 9
-    col_j = j % 9
-    mismo_cuadrante = (fila_i // 3 == fila_j // 3) and (col_i // 3 == col_j // 3)
+import time
 
-    # Si son vecinos y tienen el mismo valor, hay conflicto
-    if (fila_i == fila_j or col_i == col_j or mismo_cuadrante) and a == b:
-        return False
-    return True
+def es_consistente(a, b):
+    return a != b
 
 
-def forward(i, variables):
+def forward(i, variables, vecinos):
     dominio_vacio = False
     valor_i = variables[i].get_valor()
-    for j in range(i + 1, len(variables)):
+    for j in vecinos[i]:
+        if j <= i:
+            continue  # solo mirar variables futuras
         for b in variables[j].dominio[:]:
-            # if variables[j].fijo: continue
-            
-            if not es_consistente(i, valor_i, j, b):
+            if not es_consistente(valor_i, b):
                 variables[j].dominio.remove(b)
                 variables[j].setPodado((i, b))
             
@@ -29,9 +21,11 @@ def forward(i, variables):
     if dominio_vacio: return False
     return True
 
-def restaurar(i, variables):
+def restaurar(i, variables, vecinos):
     
-    for j in range(i + 1, len(variables)):
+    for j in vecinos[i]:
+        if j <= i:
+            continue  # solo mirar variables futuras
         nuevos_podados = [] # Lo hacemos de esta manera porque con una copia
         # Recorremos cada valor podado de Xj
         for (responsable, valor) in variables[j].podado:
@@ -47,7 +41,7 @@ def restaurar(i, variables):
         variables[j].podado = nuevos_podados
 
 
-def FC(i, variables):
+def FC(i, variables, vecinos):
     global contador_rec, contador_asig
     contador_rec += 1  # 🔹 contamos una llamada recursiva
 
@@ -55,22 +49,23 @@ def FC(i, variables):
     if i >= len(variables): 
         return variables
     variable = variables[i]
-    # if variable.fijo: return FC(i + 1, variables)
 
     for a in variable.dominio:
         contador_asig += 1  # 🔹 contamos una asignación de a
         variable.asignar(a) # Xi ← a
-        if forward(i, variables): 
-            resultado = FC(i+1, variables)
+        if forward(i, variables, vecinos): 
+            resultado = FC(i+1, variables, vecinos)
             if resultado: return resultado
-        restaurar(i, variables)
+        restaurar(i, variables, vecinos)
         variable.desasignar()
     return False
 
 
-def resolverFC(tablero, variables):
-    
-    fcResuelto = FC(0, variables)
+def resolverFC(tablero, variables, vecinos):
+    inicio = time.time()
+    fcResuelto = FC(0, variables, vecinos)
+    fin = time.time()
+    tiempo = fin - inicio
 
     if not fcResuelto:
         print("❌ No hay solución posible con Forward Checking")
@@ -80,4 +75,4 @@ def resolverFC(tablero, variables):
         fila = i // 9
         columna = i % 9
         tablero.setCelda(fila, columna, fcResuelto[i].get_valor())  # sincronizar tablero
-    return True
+    return True, round(tiempo, 9)

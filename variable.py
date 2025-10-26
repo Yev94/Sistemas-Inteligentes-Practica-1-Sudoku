@@ -3,7 +3,7 @@ class Variable:
         self.valor = valor
         self.fijo = valor != '0'
         self.podado = []
-
+        
 
         if self.fijo:
             # 🔹 Si la celda tiene un valor fijo, su dominio es solo ese valor
@@ -11,7 +11,6 @@ class Variable:
         else:
             # 🔹 Si está vacía, su dominio inicial es 1..9 o el que le pases
             self.dominio = dominio or [str(i) for i in range(1, 10)]
-        self.dominio_original = self.dominio
 
     def esta_asignado(self):
         """Devuelve True si la variable ya tiene valor esta_asignado."""
@@ -24,10 +23,6 @@ class Variable:
     def desasignar(self):
         if not self.fijo:
             self.valor = '0'
-    
-    def resetearDominio(self):
-        """Desasigna el valor y restaura el dominio completo."""
-        self.dominio = self.dominio_original
     
     def setPodado(self, valor):
         self.podado.append(valor)
