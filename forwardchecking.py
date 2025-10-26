@@ -1,51 +1,28 @@
+def es_consistente(i, a, j, b):
+    # Solo importa si están en la misma fila, columna o cuadrante
+    fila_i = i // 9
+    col_i = i % 9
+    fila_j = j // 9
+    col_j = j % 9
+    mismo_cuadrante = (fila_i // 3 == fila_j // 3) and (col_i // 3 == col_j // 3)
 
-def es_consistente(k, variables, valor):
-    """
-    Comprueba si 'valor' puede colocarse en la posición k sin 
-    violar las restricciones de fila, columna o bloque 3x3.
-    """
-    if valor == '0':
-        return True  # nada que comprobar
-
-    fila = k // 9
-    columna = k % 9
-    fila_base = fila * 9
-
-    # --- Fila ---
-    for i in range(9):
-        idx = fila_base + i
-        if idx != k and variables[idx].get_valor() == valor:
-            return False
-
-    # --- Columna ---
-    for i in range(9):
-        idx = 9 * i + columna
-        if idx != k and variables[idx].get_valor() == valor:
-            return False
-
-    # --- Bloque 3x3 ---
-    iFilaCuadrante = (fila // 3) * 3
-    iColumnaCuadrante = (columna // 3) * 3
-    for f in range(iFilaCuadrante, iFilaCuadrante + 3):
-        base = 9 * f
-        for c in range(iColumnaCuadrante, iColumnaCuadrante + 3):
-            idx = base + c
-            if idx != k and variables[idx].get_valor() == valor:
-                return False
-
+    # Si son vecinos y tienen el mismo valor, hay conflicto
+    if (fila_i == fila_j or col_i == col_j or mismo_cuadrante) and a == b:
+        return False
     return True
 
 
 def forward(i, variables):
     dominio_vacio = False
+    valor_i = variables[i].get_valor()
     for j in range(i + 1, len(variables)):
         for b in variables[j].dominio[:]:
-            if variables[j].fijo: continue
-            variables[j].asignar(b)
-            if not es_consistente(j, variables, b):
+            # if variables[j].fijo: continue
+            
+            if not es_consistente(i, valor_i, j, b):
                 variables[j].dominio.remove(b)
                 variables[j].setPodado((i, b))
-            variables[j].desasignar()
+            
         if variables[j].dominio == []: 
             dominio_vacio = True
             break
@@ -60,7 +37,8 @@ def restaurar(i, variables):
         for (responsable, valor) in variables[j].podado:
             if responsable == i:
                 # Xi es responsable del filtrado → restaurar valor
-                variables[j].dominio.append(valor)
+                if valor not in variables[j].dominio:
+                    variables[j].dominio.append(valor)
             else:
                 # Otro responsable (no restauramos todavía)
                 nuevos_podados.append((responsable, valor))
@@ -72,14 +50,16 @@ def restaurar(i, variables):
 def FC(i, variables):
     global contador_rec, contador_asig
     contador_rec += 1  # 🔹 contamos una llamada recursiva
-     # ✅ Caso base: Sudoku completo
-    if i >= len(variables): return variables
-    variable = variables[i]
-    if variable.fijo: return FC(i + 1, variables)
 
-    for valor in variable.dominio:
-        contador_asig += 1  # 🔹 contamos una asignación de valor
-        variable.asignar(valor) # Xi ← a
+     # ✅ Caso base: Sudoku completo
+    if i >= len(variables): 
+        return variables
+    variable = variables[i]
+    # if variable.fijo: return FC(i + 1, variables)
+
+    for a in variable.dominio:
+        contador_asig += 1  # 🔹 contamos una asignación de a
+        variable.asignar(a) # Xi ← a
         if forward(i, variables): 
             resultado = FC(i+1, variables)
             if resultado: return resultado

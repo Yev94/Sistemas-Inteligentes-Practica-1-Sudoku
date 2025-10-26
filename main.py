@@ -13,8 +13,11 @@ import sys
 # --------------------- Mis Imports --------------------------------
 import backtracking
 import forwardchecking
+import ac3
 from variable import Variable
 # --------------------- !Mis Imports --------------------------------
+
+ARCHIVO = 'm3.txt'
 
 GREY=(220,220,220)
 NEGRO=(10,10,10)
@@ -95,7 +98,7 @@ def main():
     reloj=pygame.time.Clock()
     
     if len(sys.argv)==1: #si no se indica un mapa coge mapa.txt por defecto
-        file='m1.txt'
+        file=ARCHIVO
     else:
         file=sys.argv[-1]
     
@@ -165,8 +168,25 @@ def main():
                     if tablero is None:
                         print('Hay que cargar un sudoku')
                     else:                        
-                        print("AC3")                        
-                        #aquí llamar al AC3    
+                        print("🔹 Ejecutando AC-3...")
+
+                        # Ejecutar el algoritmo de consistencia
+                        exito = ac3.ac3(variables)
+
+                        if not exito:
+                            print("❌ El Sudoku no es consistente (AC-3 detectó un conflicto).")
+                        else:
+                            print("✅ AC-3 finalizado correctamente.")
+
+                            # 🔹 Actualizar el tablero con los valores que quedaron determinados
+                            for i, var in enumerate(variables):
+                                if len(var.dominio) == 1:
+                                    valor = var.dominio[0]
+                                    fila = i // 9
+                                    col = i % 9
+                                    tablero.setCelda(fila, col, valor)
+
+                            print("🔹 Tablero actualizado con los valores determinados por AC-3.")
                
         #limpiar pantalla
         screen.fill(GREY)
