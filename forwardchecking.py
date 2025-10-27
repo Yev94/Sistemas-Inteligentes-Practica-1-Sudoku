@@ -1,51 +1,33 @@
 import time
 
-def es_consistente(a, b):
-    return a != b
-
 
 def forward(i, variables, vecinos):
-    dominio_vacio = False
+    cambios = [] # Lista de (j, valor) que se quitaron
     valor_i = variables[i].get_valor()
     for j in vecinos[i]:
         if j <= i:
             continue  # solo mirar variables futuras
-        for b in variables[j].dominio[:]:
-            if not es_consistente(valor_i, b):
-                variables[j].dominio.remove(b)
-                variables[j].setPodado((i, b))
+
+        # Si el valor asignado a Xi está en el dominio de Xj
+        if valor_i in variables[j].dominio:
+            # Si Xj solo tiene ese valor → dominio vacío → inconsistente
+            if len(variables[j].dominio) == 1:
+                return False, cambios
             
-        if variables[j].dominio == []: 
-            dominio_vacio = True
-            break
-    if dominio_vacio: return False
-    return True
+            variables[j].dominio.discard(valor_i)  # discard no da error si no existe
+            cambios.append((j, valor_i))
 
-def restaurar(i, variables, vecinos):
-    
-    for j in vecinos[i]:
-        if j <= i:
-            continue  # solo mirar variables futuras
-        nuevos_podados = [] # Lo hacemos de esta manera porque con una copia
-        # Recorremos cada valor podado de Xj
-        for (responsable, valor) in variables[j].podado:
-            if responsable == i:
-                # Xi es responsable del filtrado → restaurar valor
-                if valor not in variables[j].dominio:
-                    variables[j].dominio.append(valor)
-            else:
-                # Otro responsable (no restauramos todavía)
-                nuevos_podados.append((responsable, valor))
+    return True, cambios
 
-        # Actualizamos la lista de podados (quitamos los restaurados)
-        variables[j].podado = nuevos_podados
-
+def restaurar(cambios, variables):
+    for j, val in cambios:
+                variables[j].dominio.add(val)
 
 def FC(i, variables, vecinos):
     global contador_rec, contador_asig
     contador_rec += 1  # 🔹 contamos una llamada recursiva
 
-     # ✅ Caso base: Sudoku completo
+     # Caso base: Sudoku completo
     if i >= len(variables): 
         return variables
     variable = variables[i]
@@ -53,26 +35,31 @@ def FC(i, variables, vecinos):
     for a in variable.dominio:
         contador_asig += 1  # 🔹 contamos una asignación de a
         variable.asignar(a) # Xi ← a
-        if forward(i, variables, vecinos): 
+        ok, cambios = forward(i, variables, vecinos)
+        if ok:
             resultado = FC(i+1, variables, vecinos)
-            if resultado: return resultado
-        restaurar(i, variables, vecinos)
+            if resultado:
+                return resultado
+
+        # Restaurar solo los cambios hechos en esta llamada
+        restaurar(cambios, variables)
+
         variable.desasignar()
     return False
 
 
 def resolverFC(tablero, variables, vecinos):
-    inicio = time.time()
+    # Los vecinos son una lista generada al iniciar el juego de todos los indices vecinos de los indices de cada variable, para ser usada en los 3 algoritmos
+    inicio = time.perf_counter()
     fcResuelto = FC(0, variables, vecinos)
-    fin = time.time()
+    fin = time.perf_counter()
     tiempo = fin - inicio
 
     if not fcResuelto:
-        print("❌ No hay solución posible con Forward Checking")
-        return False
+        return False, tiempo
     
     for i in range(81):
         fila = i // 9
         columna = i % 9
         tablero.setCelda(fila, columna, fcResuelto[i].get_valor())  # sincronizar tablero
-    return True, round(tiempo, 9)
+    return True, tiempo

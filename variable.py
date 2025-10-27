@@ -2,15 +2,12 @@ class Variable:
     def __init__(self, valor='0', dominio=None):
         self.valor = valor
         self.fijo = valor != '0'
-        self.podado = []
-        
-
         if self.fijo:
             # 🔹 Si la celda tiene un valor fijo, su dominio es solo ese valor
-            self.dominio = [valor]
+            self.dominio = {valor}
         else:
             # 🔹 Si está vacía, su dominio inicial es 1..9 o el que le pases
-            self.dominio = dominio or [str(i) for i in range(1, 10)]
+            self.dominio = dominio or {str(i) for i in range(1, 10)}
 
     def esta_asignado(self):
         """Devuelve True si la variable ya tiene valor esta_asignado."""

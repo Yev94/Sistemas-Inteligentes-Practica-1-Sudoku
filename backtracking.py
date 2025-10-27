@@ -6,7 +6,7 @@ contador_asig = 0
 def comprobar(k, variables, vecinos):
     valorK = variables[k].get_valor()
     if valorK == '0':
-        return True  # si está vacía, nada que comprobar
+            return True  # si está vacía, nada que comprobar
 
     for idx in vecinos[k]:  # solo recorre sus vecinos directos
         if variables[idx].get_valor() == valorK:
@@ -20,7 +20,6 @@ def backtracking(k, variables, vecinos):
     # ✅ Si ya pasamos el último índice, está resuelto
     if k >= len(variables): return variables
     variable_actual = variables[k]
-
     if variable_actual.fijo: return backtracking(k + 1, variables, vecinos) # Es una celda fija → saltar
     for valor_actual in variable_actual.dominio:
         contador_asig += 1
@@ -33,17 +32,16 @@ def backtracking(k, variables, vecinos):
     return False
 
 def resolverBK(tablero, variables, vecinos):
-    inicio = time.time()
+    inicio = time.perf_counter()
     bkResuelto = backtracking(0, variables, vecinos)
-    fin = time.time()
+    fin = time.perf_counter()
     tiempo = fin - inicio  # medimos el tiempo total
 
     if not bkResuelto:
-        print("❌ No hay solución posible con Backtracking")
         return False, tiempo  # devolvemos False + tiempo
     
     for i in range(81):
         fila = i // 9
         columna = i % 9
         tablero.setCelda(fila, columna, bkResuelto[i].get_valor())  # sincronizar tablero
-    return True, round(tiempo, 9)
+    return True, tiempo
