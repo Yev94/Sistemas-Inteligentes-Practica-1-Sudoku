@@ -17,8 +17,10 @@ def comprobar(k, variables, vecinos):
 def backtracking(k, variables, vecinos):
     global contador_rec, contador_asig
     contador_rec += 1
-    # ✅ Si ya pasamos el último índice, está resuelto
+    
+    # Si ya pasamos el último índice, está resuelto
     if k >= len(variables): return variables
+
     variable_actual = variables[k]
     if variable_actual.fijo: return backtracking(k + 1, variables, vecinos) # Es una celda fija → saltar
     for valor_actual in variable_actual.dominio:

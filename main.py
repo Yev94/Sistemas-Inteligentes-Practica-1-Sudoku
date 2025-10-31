@@ -1,6 +1,10 @@
 #########################################################################
 # CURSO 25-25
 # PRACTICA 1 DE SISTEMAS INTELIGENTES: RESOLUCION DE SUDOKUS
+# m1 ym2 son de la plantilla
+# m3 es el más difícil de resolver AI Escargot
+# m4 es uno inconsistente
+# m5 son todo 0s
 #########################################################################   
 
 import pygame
@@ -15,9 +19,11 @@ import forwardchecking
 import ac3
 from variable import Variable
 # --------------------- !Mis Imports --------------------------------
-
-ARCHIVO = 'm3.txt'
+# --------------------- Mi config  --------------------------------
+ARCHIVO = 'm1.txt'
 IMPRIMIR_DOMINIOS_AC3 = True
+MOSTRAR_VALORES_AC3_TABLA = True
+# --------------------- Mi config  --------------------------------
 
 GREY=(220,220,220)
 NEGRO=(10,10,10)
@@ -220,13 +226,14 @@ def main():
                         else:
                             print(f"❌ El Sudoku no es consistente (AC-3 detectó un conflicto) | Tiempo: {tiempo}s")
 
-                        # Para visualizar tablero con los que solo tengan un valor en dominio 
-                        # for i, var in enumerate(variables):
-                        #     if len(var.dominio) == 1:
-                        #         valor = next(iter(var.dominio))
-                        #         fila = i // 9
-                        #         col = i % 9
-                        #         tablero.setCelda(fila, col, valor)
+                        #Para visualizar tablero con los que solo tengan un valor en dominio 
+                        if MOSTRAR_VALORES_AC3_TABLA:
+                            for i, var in enumerate(variables):
+                                if len(var.dominio) == 1:
+                                    valor = next(iter(var.dominio))
+                                    fila = i // 9
+                                    col = i % 9
+                                    tablero.setCelda(fila, col, valor)
 
         #limpiar pantalla
         screen.fill(GREY)

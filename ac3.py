@@ -9,11 +9,10 @@ def crear_cola_par_variables(variables, vecinos):
     return Q
 
 def consistente(valor_k, dominio_m):
-    """Devuelve True si valor_k tiene al menos un soporte en dominio_m"""
     for valor_m in dominio_m:
         if valor_k != valor_m: 
             return True
-    return False  # ← ¡Aquí estaba el error!
+    return False
 
 def ac3(variables, vecinos):
     Q = crear_cola_par_variables(variables, vecinos)
@@ -26,7 +25,7 @@ def ac3(variables, vecinos):
         # Iterar sobre una copia del dominio de k
         for valor_k in variables[k].dominio.copy():
             if not consistente(valor_k, variables[m].dominio):
-                variables[k].dominio.discard(valor_k)
+                variables[k].dominio.remove(valor_k)
                 cambio = True
 
         if len(variables[k].dominio) == 0:
