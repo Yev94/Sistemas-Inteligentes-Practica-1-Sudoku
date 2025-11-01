@@ -3,8 +3,9 @@
 # PRACTICA 1 DE SISTEMAS INTELIGENTES: RESOLUCION DE SUDOKUS
 # m1 ym2 son de la plantilla
 # m3 es el más difícil de resolver AI Escargot
-# m4 es uno inconsistente
-# m5 son todo 0s
+# m4 evolución de AI Escagrot por ChatGPT para aumentar recursiones
+# m5 es uno inconsistente
+# m6 son todo 0s
 #########################################################################   
 
 import pygame
@@ -23,6 +24,7 @@ from variable import Variable
 ARCHIVO = 'm1.txt'
 IMPRIMIR_DOMINIOS_AC3 = True
 MOSTRAR_VALORES_AC3_TABLA = True
+PRUEBA_SUDOKU_ARGUMENTO_CONSOLA = True
 # --------------------- Mi config  --------------------------------
 
 GREY=(220,220,220)
@@ -196,7 +198,7 @@ def main():
                         if exito:
                             print(f"✅ BK -> Recursiones: {backtracking.contador_rec} | Asignaciones: {backtracking.contador_asig} | Tiempo: {tiempo}s")
                         else:
-                            print(f"❌ No se encontró solución con BK. | Tiempo: {tiempo}s")
+                            print(f"❌ BK -> Recursiones: {backtracking.contador_rec} | Asignaciones: {backtracking.contador_asig} | Tiempo: {tiempo}s")
 
                 #  Reemplazamos función botón FC
                 elif pulsaBoton(pos, botFC):
@@ -210,7 +212,7 @@ def main():
                         if exito:
                             print(f"✅ FC -> Recursiones: {forwardchecking.contador_rec} | Asignaciones: {forwardchecking.contador_asig} | Tiempo: {tiempo}s")
                         else:
-                            print(f"❌ No se encontró solución con FC. | Tiempo: {tiempo}s")
+                            print(f"❌ FC -> Recursiones: {forwardchecking.contador_rec} | Asignaciones: {forwardchecking.contador_asig} | Tiempo: {tiempo}s")
 
 
                 elif pulsaBoton(pos, botAC3):

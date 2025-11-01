@@ -4,8 +4,9 @@ from collections import deque
 def crear_cola_par_variables(variables, vecinos):
     Q = deque()
     for i in range(len(variables)):
-        for j in vecinos[i]:
-            Q.append((i, j))
+        if not variables[i].fijo:
+            for j in vecinos[i]:
+                Q.append((i, j))
     return Q
 
 def consistente(valor_k, dominio_m):

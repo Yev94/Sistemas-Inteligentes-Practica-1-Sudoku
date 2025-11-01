@@ -3,7 +3,7 @@ class Variable:
         self.valor = valor
         self.fijo = valor != '0'
         if self.fijo:
-            self.dominio = {valor}
+            self.dominio = [valor]
         else:
             self.dominio = dominio or [str(i) for i in range(1, 10)]
 

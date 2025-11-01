@@ -31,7 +31,7 @@ def FC(i, variables, vecinos):
     global contador_rec, contador_asig
     contador_rec += 1  #  contamos una llamada recursiva
 
-     # Caso base: Sudoku completo
+    # Caso base: Sudoku completo
     if i >= len(variables): 
         return variables
     variable = variables[i]
